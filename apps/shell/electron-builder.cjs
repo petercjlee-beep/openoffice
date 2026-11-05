@@ -205,6 +205,7 @@ function assertModuleTreesPresent() {
     '../mindmap/out',
     '../hwp/out',
     '../epub/out',
+    '../gul/out',
     '../../packages/cli/dist/genoffice.cjs',
     '../../packages/cli/dist/node_modules/jsdom',
   ]) {
@@ -340,7 +341,7 @@ function ensureThirdPartyNotices() {
 // product-own ProgId with the per-type document icon for each, so choosing
 // this app for them shows the Hangul, mind-map or book icon instead of the
 // bare app icon (the .ico files ship via win.extraResources below).
-const WIN_OPEN_WITH_ONLY_EXTS = new Set(['txt', 'json', 'xmind', 'hwp', 'hwpx', 'epub'])
+const WIN_OPEN_WITH_ONLY_EXTS = new Set(['txt', 'json', 'xmind', 'hwp', 'hwpx', 'epub', 'gul'])
 // NSIS registers each association under a ProgId taken from its `name`
 // (HKCU\Software\Classes\<name>). The upstream app registers the bare names
 // below ("Word Document"), so sharing them would let either install overwrite
@@ -491,6 +492,17 @@ const FILE_ASSOCIATIONS = [
     icon: 'epub',
     mimeType: 'application/epub+zip',
   },
+  {
+    // Open With only, like .hwp: Hunminjeongeum's own program stays the default. No icon of
+    // its own yet, so it takes the HWP one.
+    ext: 'gul',
+    name: 'GUL Document',
+    description: 'Hunminjeongeum Document',
+    role: 'Editor',
+    rank: 'Alternate',
+    icon: 'hwp',
+    mimeType: 'application/x-gul',
+  },
 ]
 
 const config = {
@@ -562,6 +574,10 @@ const config = {
     {
       from: '../epub/out',
       to: 'modules/epub',
+    },
+    {
+      from: '../gul/out',
+      to: 'modules/gul',
     },
     // PDF text editing engines: the bundled main resolves these under
     // Resources/wasm when node_modules is absent (apps/pdf/src/main/wasm-path.ts)

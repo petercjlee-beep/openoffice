@@ -86,6 +86,8 @@ const KIND_ICON: Record<TabSummary['kind'], ReactElement> = {
   mindmap: <FileKindIcon src={iconMindmap} />,
   hwp: <FileKindIcon src={iconHwp} />,
   epub: <FileKindIcon src={iconEpub} />,
+  // no icon of its own yet: the HWP one stands in
+  gul: <FileKindIcon src={iconHwp} />,
   help: <HelpIcon />,
 }
 

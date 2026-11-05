@@ -63,6 +63,7 @@
 !define GENOFFICE_HWPX_PROGID "IeumOffice.HWPXDocument"
 !define GENOFFICE_MINDMAP_PROGID "IeumOffice.MindMap"
 !define GENOFFICE_EPUB_PROGID "IeumOffice.EPUBBook"
+!define GENOFFICE_GUL_PROGID "IeumOffice.GULDocument"
 
 !macro GenOfficeRegisterOpenWithHwp
   WriteRegStr SHELL_CONTEXT "Software\Classes\${GENOFFICE_HWP_PROGID}" "" "HWP Document"
@@ -112,6 +113,20 @@
   DeleteRegKey SHELL_CONTEXT "Software\Classes\${GENOFFICE_EPUB_PROGID}"
 !macroend
 
+; .gul (Hunminjeongeum) is offered the same way; it has no icon of its own yet, so its
+; ProgId reuses resources\hwp.ico.
+!macro GenOfficeRegisterOpenWithGul
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${GENOFFICE_GUL_PROGID}" "" "GUL Document"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${GENOFFICE_GUL_PROGID}\DefaultIcon" "" "$INSTDIR\resources\hwp.ico"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${GENOFFICE_GUL_PROGID}\shell\open\command" "" '"$appExe" "%1"'
+  WriteRegNone SHELL_CONTEXT "Software\Classes\.gul\OpenWithProgids" "${GENOFFICE_GUL_PROGID}"
+!macroend
+
+!macro GenOfficeUnregisterOpenWithGul
+  DeleteRegValue SHELL_CONTEXT "Software\Classes\.gul\OpenWithProgids" "${GENOFFICE_GUL_PROGID}"
+  DeleteRegKey SHELL_CONTEXT "Software\Classes\${GENOFFICE_GUL_PROGID}"
+!macroend
+
 ; Windows' "Default apps" page picks an app by its registered capabilities and
 ; records the ProgId the app declared for the type. Without this entry Windows
 ; only knows the bare IeumOffice.exe application and records
@@ -144,6 +159,7 @@
   WriteRegStr SHELL_CONTEXT "${GENOFFICE_CAPABILITIES_KEY}\FileAssociations" ".hwpx" "${GENOFFICE_HWPX_PROGID}"
   WriteRegStr SHELL_CONTEXT "${GENOFFICE_CAPABILITIES_KEY}\FileAssociations" ".xmind" "${GENOFFICE_MINDMAP_PROGID}"
   WriteRegStr SHELL_CONTEXT "${GENOFFICE_CAPABILITIES_KEY}\FileAssociations" ".epub" "${GENOFFICE_EPUB_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${GENOFFICE_CAPABILITIES_KEY}\FileAssociations" ".gul" "${GENOFFICE_GUL_PROGID}"
   WriteRegStr SHELL_CONTEXT "${GENOFFICE_CAPABILITIES_KEY}\FileAssociations" ".odt" "${GENOFFICE_ODT_PROGID}"
 !macroend
 
@@ -213,6 +229,7 @@
   !insertmacro GenOfficeRegisterOpenWithHwpx
   !insertmacro GenOfficeRegisterOpenWithMindmap
   !insertmacro GenOfficeRegisterOpenWithEpub
+  !insertmacro GenOfficeRegisterOpenWithGul
   !insertmacro GenOfficeRegisterApplicationCapabilities
   !insertmacro UPDATEFILEASSOC
 !macroend
@@ -229,6 +246,7 @@
   !insertmacro GenOfficeUnregisterOpenWithHwpx
   !insertmacro GenOfficeUnregisterOpenWithMindmap
   !insertmacro GenOfficeUnregisterOpenWithEpub
+  !insertmacro GenOfficeUnregisterOpenWithGul
   !insertmacro GenOfficeUnregisterApplicationCapabilities
   Pop $0
   !insertmacro UPDATEFILEASSOC

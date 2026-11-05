@@ -348,6 +348,14 @@ import {
 } from '../../../epub/src/main/epub-main'
 import { epubReadText, epubSaveToPath } from '../../../epub/src/main/mcp-queries'
 import type { EpubMenuCommand } from '../../../epub/src/shared/ipc'
+import {
+  configureGulRuntime,
+  gulFileRenamed,
+  gulReadText,
+  gulSaveToPath,
+  requestGulSave,
+  setGulFileSavedHook,
+} from '../../../gul/src/main/gul-main'
 import { migrateJobRecords } from './pdf-structure/job-migration'
 import type {
   AutoSaveDefault,
@@ -411,6 +419,7 @@ import {
   MINDMAP_RE,
   HWP_RE,
   EPUB_RE,
+  GUL_RE,
   PDF_RE,
   PPTX_RE,
   TEXT_RE,
@@ -687,6 +696,9 @@ const HWP_OUT = app.isPackaged
 const EPUB_OUT = app.isPackaged
   ? join(process.resourcesPath, 'modules', 'epub')
   : join(APPS_ROOT, 'epub', 'out')
+const GUL_OUT = app.isPackaged
+  ? join(process.resourcesPath, 'modules', 'gul')
+  : join(APPS_ROOT, 'gul', 'out')
 const SIDECAR_BIN = app.isPackaged
   ? join(process.resourcesPath, 'native', SIDECAR_EXE)
   : join(APPS_ROOT, 'sheets', 'native', 'xlsx-engine', 'target', 'release', SIDECAR_EXE)
@@ -821,6 +833,11 @@ configureEpubRuntime({
   migrateJobRecords,
   // a result book is never written over a file open in any tab or window
   isPathOpenInTab: (path) => isPathOpenInAnyTab(path),
+})
+configureGulRuntime({
+  preloadPath: join(GUL_OUT, 'preload', 'index.js'),
+  rendererUrl: process.env.GUL_RENDERER_URL,
+  rendererFile: join(GUL_OUT, 'renderer', 'index.html'),
 })
 // privileged-scheme registration is only legal before app ready, and only once
 // per process: the html module's call carries the book's asset scheme along
@@ -1139,6 +1156,7 @@ const tMain = createI18n({
     filterMindmap: '思维导图 (XMind 文件)',
     filterHwp: 'HWP 文档 (HWP, HWPX)',
     filterEpub: '电子书 (EPUB)',
+    filterGul: '训民正音 (.gul)',
     menuFind: '查找…',
     menuReplace: '替换…',
     menuTranslateBook: '翻译图书…',
@@ -1286,6 +1304,7 @@ const tMain = createI18n({
     filterMindmap: 'Mind Maps (XMind files)',
     filterHwp: 'HWP Documents (HWP, HWPX)',
     filterEpub: 'E-books (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Find…',
     menuReplace: 'Replace…',
     menuTranslateBook: 'Translate Book…',
@@ -1441,6 +1460,7 @@ const tMain = createI18n({
     filterMindmap: 'Sơ đồ tư duy (tệp XMind)',
     filterHwp: 'Tài liệu HWP (HWP, HWPX)',
     filterEpub: 'Sách điện tử (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Tìm…',
     menuReplace: 'Thay thế…',
     menuTranslateBook: 'Dịch sách…',
@@ -1597,6 +1617,7 @@ const tMain = createI18n({
     filterMindmap: 'マインドマップ (XMind ファイル)',
     filterHwp: 'HWP ドキュメント (HWP, HWPX)',
     filterEpub: '電子書籍 (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: '検索…',
     menuReplace: '置換…',
     menuTranslateBook: '本を翻訳…',
@@ -1754,6 +1775,7 @@ const tMain = createI18n({
     filterMindmap: '마인드맵 (XMind 파일)',
     filterHwp: '한글 문서 (HWP, HWPX)',
     filterEpub: '전자책 (EPUB)',
+    filterGul: '훈민정음 (.gul)',
     menuFind: '찾기…',
     menuReplace: '바꾸기…',
     menuTranslateBook: '책 번역…',
@@ -1909,6 +1931,7 @@ const tMain = createI18n({
     filterMindmap: 'Cartes mentales (fichiers XMind)',
     filterHwp: 'Documents HWP (HWP, HWPX)',
     filterEpub: 'Livres numériques (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Rechercher…',
     menuReplace: 'Remplacer…',
     menuTranslateBook: 'Traduire le livre…',
@@ -2067,6 +2090,7 @@ const tMain = createI18n({
     filterMindmap: 'Mindmaps (XMind-Dateien)',
     filterHwp: 'HWP-Dokumente (HWP, HWPX)',
     filterEpub: 'E-Books (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Suchen…',
     menuReplace: 'Ersetzen…',
     menuTranslateBook: 'Buch übersetzen…',
@@ -2225,6 +2249,7 @@ const tMain = createI18n({
     filterMindmap: 'Mapas mentales (archivos XMind)',
     filterHwp: 'Documentos HWP (HWP, HWPX)',
     filterEpub: 'Libros electrónicos (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Buscar…',
     menuReplace: 'Reemplazar…',
     menuTranslateBook: 'Traducir libro…',
@@ -2382,6 +2407,7 @@ const tMain = createI18n({
     filterMindmap: 'แผนที่ความคิด (ไฟล์ XMind)',
     filterHwp: 'เอกสาร HWP (HWP, HWPX)',
     filterEpub: 'หนังสืออิเล็กทรอนิกส์ (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'ค้นหา…',
     menuReplace: 'แทนที่…',
     menuTranslateBook: 'แปลหนังสือ…',
@@ -2535,6 +2561,7 @@ const tMain = createI18n({
     filterMindmap: 'Peta pikiran (file XMind)',
     filterHwp: 'Dokumen HWP (HWP, HWPX)',
     filterEpub: 'Buku elektronik (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Cari…',
     menuReplace: 'Ganti…',
     menuTranslateBook: 'Terjemahkan buku…',
@@ -2692,6 +2719,7 @@ const tMain = createI18n({
     filterMindmap: 'Интеллект-карты (файлы XMind)',
     filterHwp: 'Документы HWP (HWP, HWPX)',
     filterEpub: 'Электронные книги (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Найти…',
     menuReplace: 'Заменить…',
     menuTranslateBook: 'Перевести книгу…',
@@ -2848,6 +2876,7 @@ const tMain = createI18n({
     filterMindmap: 'خرائط ذهنية (ملفات XMind)',
     filterHwp: 'مستندات HWP (HWP, HWPX)',
     filterEpub: 'كتب إلكترونية (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'بحث…',
     menuReplace: 'استبدال…',
     menuTranslateBook: 'ترجمة الكتاب…',
@@ -3001,6 +3030,7 @@ const tMain = createI18n({
     filterMindmap: 'Mapas mentais (arquivos XMind)',
     filterHwp: 'Documentos HWP (HWP, HWPX)',
     filterEpub: 'Livros digitais (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Localizar…',
     menuReplace: 'Substituir…',
     menuTranslateBook: 'Traduzir livro…',
@@ -3158,6 +3188,7 @@ const tMain = createI18n({
     filterMindmap: 'Mappe mentali (file XMind)',
     filterHwp: 'Documenti HWP (HWP, HWPX)',
     filterEpub: 'Libri digitali (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Trova…',
     menuReplace: 'Sostituisci…',
     menuTranslateBook: 'Traduci libro…',
@@ -3315,6 +3346,7 @@ const tMain = createI18n({
     filterMindmap: 'Mapy myśli (pliki XMind)',
     filterHwp: 'Dokumenty HWP (HWP, HWPX)',
     filterEpub: 'E-booki (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Znajdź…',
     menuReplace: 'Zamień…',
     menuTranslateBook: 'Przetłumacz książkę…',
@@ -3471,6 +3503,7 @@ const tMain = createI18n({
     filterMindmap: 'Myšlenkové mapy (soubory XMind)',
     filterHwp: 'Dokumenty HWP (HWP, HWPX)',
     filterEpub: 'E-knihy (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Najít…',
     menuReplace: 'Nahradit…',
     menuTranslateBook: 'Přeložit knihu…',
@@ -3626,6 +3659,7 @@ const tMain = createI18n({
     filterMindmap: 'Mindmaps (XMind-bestanden)',
     filterHwp: 'HWP-documenten (HWP, HWPX)',
     filterEpub: 'E-boeken (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Zoeken…',
     menuReplace: 'Vervangen…',
     menuTranslateBook: 'Boek vertalen…',
@@ -3784,6 +3818,7 @@ const tMain = createI18n({
     filterMindmap: 'Peta minda (fail XMind)',
     filterHwp: 'Dokumen HWP (HWP, HWPX)',
     filterEpub: 'Buku elektronik (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'Cari…',
     menuReplace: 'Ganti…',
     menuTranslateBook: 'Terjemah buku…',
@@ -3939,6 +3974,7 @@ const tMain = createI18n({
     filterMindmap: 'מפות חשיבה (קובצי XMind)',
     filterHwp: 'מסמכי HWP (HWP, HWPX)',
     filterEpub: 'ספרים אלקטרוניים (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'חיפוש…',
     menuReplace: 'החלפה…',
     menuTranslateBook: 'תרגום הספר…',
@@ -4093,6 +4129,7 @@ const tMain = createI18n({
     filterMindmap: 'माइंड मैप (XMind फ़ाइलें)',
     filterHwp: 'HWP दस्तावेज़ (HWP, HWPX)',
     filterEpub: 'ई-बुक (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: 'खोजें…',
     menuReplace: 'बदलें…',
     menuTranslateBook: 'पुस्तक का अनुवाद करें…',
@@ -4249,6 +4286,7 @@ const tMain = createI18n({
     filterMindmap: '心智圖 (XMind 檔案)',
     filterHwp: 'HWP 文件 (HWP, HWPX)',
     filterEpub: '電子書 (EPUB)',
+    filterGul: 'Hunminjeongeum (.gul)',
     menuFind: '尋找…',
     menuReplace: '取代…',
     menuTranslateBook: '翻譯書籍…',
@@ -4455,6 +4493,7 @@ function afterFileMoved(oldPath: string, newPath: string): void {
     else if (t.kind === 'mindmap') mindmapFileRenamed(t.webContents, oldPath, newPath)
     else if (t.kind === 'hwp') hwpFileRenamed(t.webContents, oldPath, newPath)
     else if (t.kind === 'epub') epubFileRenamed(t.webContents, oldPath, newPath)
+    else if (t.kind === 'gul') gulFileRenamed(t.webContents, oldPath, newPath)
     else if (t.kind === 'pdf') pdfFileRenamed(t.webContents, oldPath, newPath)
   }
 }
@@ -4685,6 +4724,9 @@ function applyMenuFor(kind: TabKind): void {
       break
     case 'epub':
       buildEpubMenu()
+      break
+    case 'gul':
+      buildGulMenu()
       break
     default:
       buildHomeMenu()
@@ -5117,6 +5159,12 @@ function createShellWindow(): void {
     detachedSetFileFor(wc.id, path)
     recordRecentFile(path)
   })
+  // a Hunminjeongeum document's Save As lands on a new path
+  setGulFileSavedHook((wc, path) => {
+    manager.setTabFileFor(wc.id, path)
+    detachedSetFileFor(wc.id, path)
+    recordRecentFile(path)
+  })
   setHtmlProvisionalTitleHook((wc, title) => {
     manager.setTabTitleFor(wc.id, title)
     detachedSetTitleFor(wc.id, title)
@@ -5239,6 +5287,7 @@ const OPEN_DIALOG_EXTENSIONS = [
   'hwp',
   'hwpx',
   'epub',
+  'gul',
 ]
 
 function notifyUnsupportedFile(filePath: string): void {
@@ -5382,6 +5431,13 @@ function routeDocumentPath(filePath: string): boolean {
     const existing = tabManager.findEpubTabByPath(filePath)
     if (existing) tabManager.activateTab(existing)
     else tabManager.openEpubTab(filePath)
+    return true
+  }
+  if (GUL_RE.test(filePath)) {
+    recordRecentFile(filePath)
+    const existing = tabManager.findGulTabByPath(filePath)
+    if (existing) tabManager.activateTab(existing)
+    else tabManager.openGulTab(filePath)
     return true
   }
   notifyUnsupportedFile(filePath)
@@ -6154,6 +6210,7 @@ function registerHomeIpc(): void {
         { name: tm('filterMindmap'), extensions: ['xmind'] },
         { name: tm('filterHwp'), extensions: ['hwp', 'hwpx'] },
         { name: tm('filterEpub'), extensions: ['epub'] },
+        { name: tm('filterGul'), extensions: ['gul'] },
       ],
       properties: ['openFile', 'multiSelections'],
     })
@@ -6784,6 +6841,8 @@ const TAB_MENU_ICON: Record<TabKind, keyof MenuIconSet> = {
   mindmap: 'mindmap',
   hwp: 'hwp',
   epub: 'epub',
+  // no icon of its own yet: the HWP one stands in
+  gul: 'hwp',
   help: 'home',
 }
 
@@ -7250,6 +7309,9 @@ function activeHwpTarget() {
 }
 function activeEpubTarget() {
   return activeEditorTarget('epub', () => tabManager?.activeEpubTab())
+}
+function activeGulTarget() {
+  return activeEditorTarget('gul', () => tabManager?.activeGulTab())
 }
 
 /** whether a tab or a detached window of any editor has this file open */
@@ -8023,6 +8085,91 @@ function buildEpubMenu(): void {
         bookKey(labels.actualSize, 'CmdOrCtrl+0', 'zoom-reset'),
         bookKey(labels.zoomIn, 'CmdOrCtrl+=', 'zoom-in'),
         bookKey(labels.zoomOut, 'CmdOrCtrl+-', 'zoom-out'),
+        { type: 'separator' },
+        { role: 'togglefullscreen', label: labels.fullscreen },
+      ],
+    },
+    windowMenuTemplate(process.platform, appMenuLabels(currentLang())),
+    {
+      role: 'help',
+      label: tm('menuHelp'),
+      submenu: [
+        { label: tm('thirdPartyNotices'), click: () => void openThirdPartyNotices() },
+        { type: 'separator' },
+        ...helpCheckUpdatesItems(appMenuLabels(currentLang())),
+        aboutMenuItem(appMenuLabels(currentLang())),
+      ],
+    },
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
+// ---- Hunminjeongeum menu (gul-main has no menu of its own; the shell owns its tabs) ----
+
+function buildGulMenu(): void {
+  const isMac = process.platform === 'darwin'
+  const labels = appMenuLabels(currentLang())
+  const template: MenuItemConstructorOptions[] = [
+    ...(isMac ? [{ role: 'appMenu' as const }] : []),
+    {
+      label: tm('menuFile'),
+      submenu: [
+        {
+          label: tm('menuOpen'),
+          accelerator: 'CmdOrCtrl+O',
+          click: () => void openFileViaDialog(),
+        },
+        { type: 'separator' },
+        {
+          label: tm('backToHome'),
+          accelerator: 'Shift+CmdOrCtrl+H',
+          click: () => tabManager?.openHomeTab(),
+        },
+        { type: 'separator' },
+        {
+          label: tm('menuSave'),
+          accelerator: 'CmdOrCtrl+S',
+          click: () => {
+            const tab = activeGulTarget()
+            if (tab) void requestGulSave(tab.webContents, 'save')
+          },
+        },
+        {
+          label: tm('menuSaveAs'),
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => {
+            const tab = activeGulTarget()
+            if (tab) void requestGulSave(tab.webContents, 'saveAs')
+          },
+        },
+        { type: 'separator' },
+        {
+          label: tm('menuClose'),
+          accelerator: 'CmdOrCtrl+W',
+          click: () => closeFocusedEditor(),
+        },
+      ],
+    },
+    {
+      label: labels.edit,
+      submenu: [
+        { role: 'undo', label: labels.undo },
+        { role: 'redo', label: labels.redo },
+        { type: 'separator' },
+        { role: 'cut', label: labels.cut },
+        { role: 'copy', label: labels.copy },
+        { role: 'paste', label: labels.paste },
+        { role: 'delete', label: labels.delete },
+        { type: 'separator' },
+        { role: 'selectAll', label: labels.selectAll },
+      ],
+    },
+    {
+      label: labels.view,
+      submenu: [
+        { role: 'resetZoom', label: labels.actualSize },
+        { role: 'zoomIn', label: labels.zoomIn },
+        { role: 'zoomOut', label: labels.zoomOut },
         { type: 'separator' },
         { role: 'togglefullscreen', label: labels.fullscreen },
       ],
@@ -9070,6 +9217,7 @@ app.whenReady().then(async () => {
     mindmap: join(MINDMAP_OUT, 'renderer'),
     hwp: join(HWP_OUT, 'renderer'),
     epub: join(EPUB_OUT, 'renderer'),
+    gul: join(GUL_OUT, 'renderer'),
     // the manual shares the shell's own renderer bundle (help mode)
     help: join(__dirname, '../renderer'),
   })
@@ -9437,6 +9585,10 @@ app.whenReady().then(async () => {
       epub: {
         read: epubReadText,
         save: epubSaveToPath,
+      },
+      gul: {
+        read: gulReadText,
+        save: gulSaveToPath,
       },
     }),
     // the headless create_*/read_* tools delegate to the bundled genoffice CLI

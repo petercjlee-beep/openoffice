@@ -42,6 +42,7 @@ import {
   requestMindmapClose,
 } from '../../../mindmap/src/main/mindmap-main'
 import { createEpubView, epubIsDirty, requestEpubClose } from '../../../epub/src/main/epub-main'
+import { createGulView, gulIsDirty, requestGulClose } from '../../../gul/src/main/gul-main'
 import {
   createPdfView,
   clearPdfDirty,
@@ -516,6 +517,8 @@ export class TabManager {
         return mindmapIsDirty(wc.id)
       case 'epub':
         return epubIsDirty(wc.id)
+      case 'gul':
+        return gulIsDirty(wc.id)
       default:
         return false
     }
@@ -716,6 +719,25 @@ export class TabManager {
     return id
   }
 
+  /** Opens a Hunminjeongeum document; it always has its file (there is no new, untitled one) */
+  openGulTab(openPath: string): string {
+    const view = createGulView(openPath)
+    const id = `t${this.nextId++}`
+    this.shellWindow.contentView.addChildView(view)
+    view.setVisible(false)
+    this.trackHtmlFullScreen(view)
+    this.trackPaneFocus(view)
+    this.tabs.push({
+      id,
+      kind: 'gul',
+      view,
+      title: basename(openPath),
+      filePath: openPath,
+    })
+    this.activateTab(id)
+    return id
+  }
+
   /**
    * The generate window's "make": a new untitled tab of the target kind, with
    * the request queued for that tab's webContents to take once. The view is
@@ -785,7 +807,17 @@ export class TabManager {
    * has no untitled document, so an EPUB copy is not opened either.
    */
   openTemplateCopy(copy: {
-    editor: 'docs' | 'sheets' | 'slides' | 'pdf' | 'markdown' | 'html' | 'mindmap' | 'hwp' | 'epub'
+    editor:
+      | 'docs'
+      | 'sheets'
+      | 'slides'
+      | 'pdf'
+      | 'markdown'
+      | 'html'
+      | 'mindmap'
+      | 'hwp'
+      | 'epub'
+      | 'gul'
     path: string
     bytes: Uint8Array
     fileName: string
@@ -1392,6 +1424,8 @@ export class TabManager {
         return this.openHwpTab(path)
       case 'epub':
         return path ? this.openEpubTab(path) : null
+      case 'gul':
+        return path ? this.openGulTab(path) : null
       default:
         return null
     }
@@ -1571,6 +1605,13 @@ export class TabManager {
       .map((t) => ({ id: t.id, webContents: t.view!.webContents }))
   }
 
+  /** Hunminjeongeum tabs with unsaved edits (shell-close guard) */
+  dirtyGulTabs(): Array<{ id: string; webContents: WebContents }> {
+    return this.tabs
+      .filter((t) => t.kind === 'gul' && t.view && gulIsDirty(t.view.webContents.id))
+      .map((t) => ({ id: t.id, webContents: t.view!.webContents }))
+  }
+
   /** slides tabs whose main-process session has unsaved edits (shell-close guard) */
   dirtySlidesTabs(): Array<{ id: string; webContents: WebContents }> {
     return this.tabs
@@ -1629,6 +1670,9 @@ export class TabManager {
     }
     if (!closeGuard && tab.kind === 'epub' && tab.view) {
       if (epubIsDirty(tab.view.webContents.id)) closeGuard = requestEpubClose
+    }
+    if (!closeGuard && tab.kind === 'gul' && tab.view) {
+      if (gulIsDirty(tab.view.webContents.id)) closeGuard = requestGulClose
     }
     // docs dirty state lives in the renderer and needs an async query; skip the guard when clean (avoids a flash activation)
     if (!closeGuard && tab.kind === 'docs' && tab.view) {
@@ -1899,6 +1943,18 @@ export class TabManager {
       : undefined
   }
 
+  findGulTabByPath(path?: string): string | undefined {
+    return this.findTabOfKindByPath('gul', path)
+  }
+
+  /** the active tab's Hunminjeongeum view, if the active tab is one (its menu target) */
+  activeGulTab(): { id: string; webContents: WebContents; filePath?: string } | undefined {
+    const tab = this.tabs.find((t) => t.id === this.activeId)
+    return tab?.kind === 'gul' && tab.view
+      ? { id: tab.id, webContents: tab.view.webContents, filePath: tab.filePath }
+      : undefined
+  }
+
   findHwpTabByPath(path?: string): string | undefined {
     return this.findTabOfKindByPath('hwp', path)
   }
@@ -1979,6 +2035,9 @@ export function createPlainEditorView(kind: DocumentTabKind, filePath?: string):
     case 'epub':
       if (!filePath) throw new Error('an EPUB tab needs its file')
       return createEpubView(filePath)
+    case 'gul':
+      if (!filePath) throw new Error('a Hunminjeongeum tab needs its file')
+      return createGulView(filePath)
   }
 }
 

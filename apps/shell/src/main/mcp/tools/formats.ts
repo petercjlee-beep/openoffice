@@ -22,7 +22,7 @@
 export type SessionFamily = 'docx' | 'pptx' | 'xlsx'
 
 /** every family the app can edit, including ones MCP does not drive yet */
-export type EditorFamily = SessionFamily | 'md' | 'html' | 'pdf' | 'xmind' | 'hwp' | 'epub'
+export type EditorFamily = SessionFamily | 'md' | 'html' | 'pdf' | 'xmind' | 'hwp' | 'epub' | 'gul'
 
 export interface McpFormats {
   /** format the headless `create_*` tool writes, when exposed */
@@ -141,6 +141,16 @@ export const FORMAT_FAMILIES: readonly FormatFamily[] = [
     editorExport: [],
     // no `mcp` block: an open book is listed, read, saved and closed through
     // open_documents only (epub_translate and epub_status are the command line's)
+  },
+  {
+    family: 'gul',
+    label: 'Hunminjeongeum document',
+    editorOpen: ['gul'],
+    // a document is saved back as itself
+    editorSave: ['gul'],
+    editorExport: [],
+    // no `mcp` block: an open document is listed, read, saved and closed through
+    // open_documents only
   },
 ]
 

@@ -27,6 +27,7 @@ const INSTALLER_OPEN_WITH_EXTS: ReadonlySet<string> = new Set([
   'hwpx',
   'xmind',
   'epub',
+  'gul',
 ])
 const installerScript = readFileSync(resolve(import.meta.dirname, '../build/installer.nsh'), 'utf8')
 

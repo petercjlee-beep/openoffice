@@ -146,6 +146,7 @@ describe('capabilityReport', () => {
       'xmind',
       'hwp',
       'epub',
+      'gul',
     ])
     const docx = report.find((r) => r.family === 'docx')!
     expect(docx.editor.open).toEqual(['docx', 'odt'])

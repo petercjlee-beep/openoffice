@@ -82,6 +82,15 @@ const OPEN_WITH = [
     register: 'GenOfficeRegisterOpenWithEpub',
     unregister: 'GenOfficeUnregisterOpenWithEpub',
   },
+  {
+    ext: 'gul',
+    progId: 'IeumOffice.GULDocument',
+    define: 'GENOFFICE_GUL_PROGID',
+    name: 'GUL Document',
+    icon: 'hwp.ico',
+    register: 'GenOfficeRegisterOpenWithGul',
+    unregister: 'GenOfficeUnregisterOpenWithGul',
+  },
 ] as const
 
 describe('the .hwp / .hwpx / .xmind / .epub "Open with" registration', () => {

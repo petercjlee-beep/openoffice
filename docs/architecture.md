@@ -23,6 +23,8 @@ apps/hwp        한글(.hwp·.hwpx) 편집기. 편집 화면은 오픈소스 rhw
                 명령줄의 hwp apply도 같은 도구와 플러그인을 편집기 없이 같은 엔진에서 돌린다(결정 0079)
 apps/epub       전자책(.epub) 편집기. 책은 뒷단에 보기마다 한 벌, 장은 스크립트 없는 틀에 그리고, 저장은
                 packages/epub-engine의 범위 바꾸기로 한다. 책 번역은 pdf-structure의 작업 엔진과 보관소를 쓴다
+apps/gul        훈민정음(.gul) 편집기(1단계). 문서는 뒷단에 보기마다 한 벌(packages/gul-engine), 화면은 문단 글 목록이고
+                글을 칠 때마다 뒷단에 보낸다. 저장은 고친 스트림만 다시 쓴다(결정 0104)
 packages/ai-provider   제공자 목록, 제공자 선택 규칙, 구독 프로그램 실행부, 키 방식 제공자 연결
 packages/ai-search     검색·이미지 생성·미디어 분석 도구, 자동 호출 경로의 구독 요청 차례
 packages/agent-core    AI 실행 반복(모델 → 도구 → 모델), 화면↔뒷단 전송 통로, 가리기
@@ -36,6 +38,8 @@ packages/pdf-structure PDF의 문서 나무(다시 흐르는 글), Markdown·EPU
                        번역, 번역 PDF 써 넣기, 문서 작업 엔진, 결과 보관소. pdf2docx의 IR을 읽기만 한다
 packages/xmind-engine  마인드맵 파일 엔진(열기, 원본 보존, 맞추기, 저장, 개요 글, 테마 표). 이 프로젝트가 만든 것이고,
                        화면과 Node 양쪽에서 돈다
+packages/gul-engine    훈민정음(.gul) 엔진(OLE 복합 파일 읽고 쓰기, 스트림 압축 LZW, 쪽 레코드, 글 읽기·고치기·저장). 이 프로젝트가 만든 것이고,
+                       화면과 Node 양쪽에서 돈다. 아직 편집기 화면에 연결되지 않았다(결정 0103)
 packages/epub-engine   EPUB 엔진(열기와 거절, 블록 지도, 블록 글 표기, 범위 바꾸기 편집·저장, 글 뽑기, 책 번역의
                        단위·열쇠·지시문과 번역본·대역본). 이 프로젝트가 만든 것이고, 화면과 Node 양쪽에서 돈다
 packages/docx-engine, pptx-engine, pptx-ops, pptx-render, xlsx-gateway,

@@ -23,6 +23,7 @@ export const LAUNCHABLE_EXTS = [
   'hwp',
   'hwpx',
   'epub',
+  'gul',
 ] as const
 
 const SUPPORTED_LAUNCH_RE = new RegExp(`\\.(${LAUNCHABLE_EXTS.join('|')})$`, 'i')

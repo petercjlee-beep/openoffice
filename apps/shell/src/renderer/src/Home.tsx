@@ -105,13 +105,15 @@ const FILE_ICONS: Record<string, string> = {
   hwp: iconHwp,
   hwpx: iconHwp,
   epub: iconEpub,
+  // no icon of its own yet: the HWP one stands in
+  gul: iconHwp,
 }
 
 /* Formats the open-local card advertises. Too long for the card at any window
    width, so it ellipsizes and a hover ScreenTip carries the full list. Keep in
    sync with the main-process open-dialog filter (OPEN_DIALOG_EXTENSIONS). */
 const OPEN_LOCAL_EXTENSIONS =
-  '.docx / .odt / .xlsx / .xlsm / .xls / .csv / .tsv / .pptx / .pdf / .md / .html / .xmind / .hwp / .hwpx / .epub'
+  '.docx / .odt / .xlsx / .xlsm / .xls / .csv / .tsv / .pptx / .pdf / .md / .html / .xmind / .hwp / .hwpx / .epub / .gul'
 
 /** drag payload of home file/folder rows (JSON array of absolute paths) */
 const DRAG_PATHS_MIME = 'application/x-genoffice-paths'
@@ -306,6 +308,7 @@ const FILTERS: { key: string; label: StringKey }[] = [
   { key: 'xmind', label: 'filterMindmap' },
   { key: 'hwp', label: 'filterHwp' },
   { key: 'epub', label: 'filterEpub' },
+  { key: 'gul', label: 'filterGul' },
 ]
 
 /** sidebar filter keys that stand for a family of extensions (mirrors recent-files.ts) */

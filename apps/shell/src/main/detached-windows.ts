@@ -26,6 +26,7 @@ import { hwpIsDirty, hwpMemoModalOpen, requestHwpClose } from '../../../hwp/src/
 import { htmlIsDirty, requestHtmlClose } from '../../../html/src/main/html-main'
 import { mindmapIsDirty, requestMindmapClose } from '../../../mindmap/src/main/mindmap-main'
 import { epubIsDirty, requestEpubClose } from '../../../epub/src/main/epub-main'
+import { gulIsDirty, requestGulClose } from '../../../gul/src/main/gul-main'
 import { canonicalPath } from './tab-manager'
 import { releaseClosedRenderer } from './renderer-disposal'
 import { cancelUpdateRestart } from './update-restart'
@@ -128,6 +129,7 @@ const DEFAULT_SIZE: Record<string, { width: number; height: number }> = {
   mindmap: { width: 1200, height: 850 },
   hwp: { width: 1280, height: 900 },
   epub: { width: 1200, height: 900 },
+  gul: { width: 1100, height: 850 },
 }
 
 /** where the pointer sits inside a freshly torn-off window's title bar */
@@ -264,6 +266,8 @@ async function detachedIsDirty(rec: DetachedRecord): Promise<boolean> {
       return hwpIsDirty(wc.id)
     case 'epub':
       return epubIsDirty(wc.id)
+    case 'gul':
+      return gulIsDirty(wc.id)
     default:
       return false
   }
@@ -296,6 +300,8 @@ async function confirmDetachedClose(rec: DetachedRecord): Promise<boolean> {
       return requestHwpClose(wc, win)
     case 'epub':
       return requestEpubClose(wc, win)
+    case 'gul':
+      return requestGulClose(wc, win)
     default:
       return true
   }

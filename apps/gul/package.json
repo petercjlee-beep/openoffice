@@ -1,0 +1,34 @@
+{
+  "name": "@genoffice/gul",
+  "productName": "GenOffice Hunminjeongeum",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "Hunminjeongeum (.gul) editor module: opens a document, edits its paragraphs in place without rewriting what it does not touch, saves it back, hosted by shell tabs",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "dev:renderer": "vite --config vite.renderer.config.ts",
+    "build": "electron-vite build",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@genoffice/electron-utils": "*",
+    "@genoffice/gul-engine": "*",
+    "@genoffice/i18n": "*",
+    "@genoffice/ui": "*",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.4",
+    "electron": "^43.7.6",
+    "electron-vite": "^5.0.0",
+    "jsdom": "^28.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.11"
+  },
+  "author": "GenOffice"
+}

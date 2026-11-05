@@ -203,11 +203,19 @@ vi.mock('../../hwp/src/main/hwp-main', () => ({
 const createEpubView = vi.fn(() => makeFakeView())
 const epubIsDirty = vi.fn(() => false)
 const requestEpubClose = vi.fn(() => Promise.resolve(true))
+const createGulView = vi.fn(() => makeFakeView())
+const gulIsDirty = vi.fn(() => false)
+const requestGulClose = vi.fn(() => Promise.resolve(true))
 
 vi.mock('../../epub/src/main/epub-main', () => ({
   createEpubView: (...args: unknown[]) => createEpubView(...(args as [])),
   epubIsDirty: (...args: unknown[]) => epubIsDirty(...(args as [])),
   requestEpubClose: (...args: unknown[]) => requestEpubClose(...(args as [])),
+}))
+vi.mock('../../gul/src/main/gul-main', () => ({
+  createGulView: (...args: unknown[]) => createGulView(...(args as [])),
+  gulIsDirty: (...args: unknown[]) => gulIsDirty(...(args as [])),
+  requestGulClose: (...args: unknown[]) => requestGulClose(...(args as [])),
 }))
 
 import { helpTopicParam, helpViewUrl, TabManager } from '../src/main/tab-manager'
@@ -260,6 +268,7 @@ beforeEach(() => {
   mindmapIsDirty.mockImplementation(() => false)
   requestMindmapClose.mockImplementation(() => Promise.resolve(true))
   epubIsDirty.mockImplementation(() => false)
+  gulIsDirty.mockImplementation(() => false)
   requestEpubClose.mockImplementation(() => Promise.resolve(true))
   shellWindow = makeShellWindow()
   onChanged = vi.fn()
@@ -407,6 +416,38 @@ describe('opening tabs', () => {
     expect(manager.activeEpubTab()).toMatchObject({ id, filePath: '/tmp/novel.epub' })
     manager.openSlidesTab()
     expect(manager.activeEpubTab()).toBeUndefined()
+  })
+
+  it('opens a Hunminjeongeum tab for its file, titled by the file name', () => {
+    const id = manager.openGulTab('/tmp/report.gul')
+    expect(createGulView).toHaveBeenLastCalledWith('/tmp/report.gul')
+    expect(manager.list().find((t) => t.id === id)).toMatchObject({
+      kind: 'gul',
+      title: 'report.gul',
+      filePath: '/tmp/report.gul',
+      active: true,
+    })
+    expect(applyMenuFor).toHaveBeenLastCalledWith('gul')
+    expect(manager.findGulTabByPath('/tmp/report.gul')).toBe(id)
+    expect(manager.activeGulTab()).toMatchObject({ id, filePath: '/tmp/report.gul' })
+    manager.openSlidesTab()
+    expect(manager.activeGulTab()).toBeUndefined()
+  })
+
+  it('lists dirty Hunminjeongeum tabs and reports them to MCP agents as kind gul', async () => {
+    manager.openGulTab('/tmp/clean.gul')
+    const dirtyId = manager.openGulTab('/tmp/dirty.gul')
+    const dirtyView = lastCreatedView(createGulView)
+    expect(manager.dirtyGulTabs()).toEqual([])
+    gulIsDirty.mockImplementation(
+      ((id: number) => id === dirtyView.webContents.id) as () => boolean,
+    )
+    expect(manager.dirtyGulTabs()).toEqual([{ id: dirtyId, webContents: dirtyView.webContents }])
+    const documents = await manager.openDocuments()
+    expect(documents.map((d) => [d.kind, d.filePath, d.dirty])).toEqual([
+      ['gul', '/tmp/clean.gul', false],
+      ['gul', '/tmp/dirty.gul', true],
+    ])
   })
 
   it('titles an untitled mind map with the name the shell supplies for that kind', () => {
@@ -999,6 +1040,15 @@ describe('file path bookkeeping', () => {
       open: () => {
         manager.openEpubTab('/tmp/one.epub')
         return lastCreatedView(createEpubView)
+      },
+    },
+    {
+      kind: 'gul',
+      file: '/tmp/one.gul',
+      renamed: '/tmp/two.gul',
+      open: () => {
+        manager.openGulTab('/tmp/one.gul')
+        return lastCreatedView(createGulView)
       },
     },
   ]
