@@ -10,7 +10,7 @@ type Loaded =
 /** `PAGE3` → 4th page, `Anchored Frame` → the frames' text; other parts are not listed */
 function partHeading(part: string, t: ReturnType<typeof useI18n>['t']): string {
   const page = /^PAGE(\d+)$/.exec(part)
-  if (page) return `${Number(page[1]) + 1} ${t('page')}`
+  if (page) return t('page', { n: Number(page[1]) + 1 })
   return t('frames')
 }
 
@@ -34,6 +34,8 @@ function AutoTextarea(props: {
       ref={ref}
       className="gul-paragraph"
       rows={1}
+      // the document's own text runs in its own direction, whatever language the screen is in
+      dir="auto"
       value={props.value}
       spellCheck={false}
       onChange={(e) => props.onChange(e.target.value.replace(/[\r\n]+/g, ' '))}

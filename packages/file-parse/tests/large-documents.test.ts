@@ -143,7 +143,7 @@ describe('attachableMaxBytes', () => {
 
   it('keeps the caps for pictures and formats read whole', () => {
     expect(attachableMaxBytes('png')).toBe(ATTACHABLE_IMAGE_MAX_BYTES)
-    for (const ext of ['hwp', 'doc', 'ppt', 'xls', 'txt', 'md', 'csv']) {
+    for (const ext of ['hwp', 'gul', 'doc', 'ppt', 'xls', 'txt', 'md', 'csv']) {
       expect(attachableMaxBytes(ext), ext).toBe(ATTACHABLE_MAX_BYTES)
     }
   })

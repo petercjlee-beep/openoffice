@@ -52,6 +52,7 @@ const DOCS_MAIN_EXTS = [
   'hwp',
   'hwpx',
   'epub',
+  'gul',
   'png',
   'jpg',
   'jpeg',
@@ -79,6 +80,7 @@ describe('the one shared attachable-format list', () => {
     expect(isAttachableExt('hwp')).toBe(true)
     expect(isAttachableExt('hwpx')).toBe(true)
     expect(isAttachableExt('epub')).toBe(true)
+    expect(isAttachableExt('gul')).toBe(true)
     expect(isAttachableExt('exe')).toBe(false)
   })
 })

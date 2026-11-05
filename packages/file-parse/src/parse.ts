@@ -4,6 +4,7 @@ import { OdtNotTextError, isOdtOpenError } from '@genoffice/odt-engine'
 import { docToText } from './doc'
 import { docxToText } from './docx'
 import { epubToText } from './epub'
+import { gulToText } from './gul'
 import { hwpToText } from './hwp'
 import { odtToText } from './odt'
 import { pdfToText } from './pdf'
@@ -284,7 +285,17 @@ export async function parseFileToText(
         error: `Content mismatch: .${ext} file has ${sniffed} magic bytes`,
       }
     }
+    // a .gul is an OLE2 container (Hunminjeongeum); the engine checks the rest
+    if (ext === 'gul' && sniffed !== 'ole2') {
+      return {
+        ok: false,
+        kind: 'text',
+        error: `Content mismatch: .gul file has ${sniffed} magic bytes`,
+      }
+    }
     switch (ext) {
+      case 'gul':
+        return { ok: true, kind: 'text', text: gulToText(bytes) }
       case 'hwp':
       case 'hwpx':
         return { ok: true, kind: 'text', text: await hwpToText(bytes) }

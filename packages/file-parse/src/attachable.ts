@@ -60,6 +60,7 @@ export const ATTACHABLE_EXTS: ReadonlySet<string> = new Set([
   'hwp',
   'hwpx',
   'epub',
+  'gul',
   ...ATTACHABLE_IMAGE_EXTS,
 ])
 
